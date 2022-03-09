@@ -1,19 +1,19 @@
 /* -------------------------------------------- */
 /*                     Misc                     */
 /* -------------------------------------------- */
-import fs, { fstatSync } from "fs";
+import fs from "fs";
 import clc from "cli-color";
 import emoji from "node-emoji";
 
-const log = console.log;
-const warn = (str) => clc.red(str)+emoji.get('warning');
-const success = (str) => clc.green(str)+emoji.get('tada');
+export const log = console.log;
+export const warn = (str) => clc.redBright(str)+emoji.get('warning');
+export const success = (str) => clc.green(str)+emoji.get('tada');
 
 /* -------------------------------------------- */
 /*                  Declaration                 */
 /* -------------------------------------------- */
 
-class Container {
+export class Container {
   fileDir: string;
   createFile: Function;
 
@@ -62,7 +62,7 @@ class Container {
   }
 
   /* ----------------- Get all ---------------- */
-  async getAll(): Promise<Object> {
+  async getAll(): Promise<Object[]> {
     try {
       const allData = JSON.parse(await fs.promises.readFile(this.fileDir,'utf8'))
       log(success('Array Retreived!'))
