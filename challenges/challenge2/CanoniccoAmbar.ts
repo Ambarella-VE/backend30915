@@ -1,115 +1,100 @@
 /* -------------------------------------------- */
 /*                     Misc                     */
 /* -------------------------------------------- */
-import fs from 'fs';
-import clc from 'cli-color';
-import emoji from 'node-emoji';
+import fs from "fs";
+import clc from "cli-color";
+import emoji from "node-emoji";
 
-const log = console.log
-
+export const log = console.log;
+export const warn = (str) => clc.redBright(str)+emoji.get('warning');
+export const success = (str) => clc.green(str)+emoji.get('tada');
 
 /* -------------------------------------------- */
 /*                  Declaration                 */
 /* -------------------------------------------- */
 
-class Container {
+export class Container {
   fileDir: string;
+  createFile: Function;
 
   constructor(fileDir: string) {
     this.fileDir = fileDir;
+    this.createFile = async (fileDir)=> {
+      await fs.promises.unlink(fileDir)
+      .then(async ()=> await fs.promises.writeFile(fileDir,'utf8'))
+    }
   }
 
   /* ---------------- Functions --------------- */
-  save(data: Object): Number {
-    let assignedId: Number = 0;
-    let newData: Object = data;
-    let jsonNewData: Array<Object>
-    fs.promises
-      .readFile(this.fileDir, "utf8")
-      .then((content) => {
-        const jsonData: Array<Object> = JSON.parse(content);
-        if (jsonData.length) {
-          const lastItem = jsonData[jsonData.length - 1];
-          const lastId = lastItem["id"];
-          newData["id"] = lastId + 1;
-        } else {
-          newData["id"] =  1;
-        }
-        jsonNewData = jsonData;
-        jsonNewData.push(newData);
-      })
-      .then(()=>{
-        fs.promises.writeFile(this.fileDir, JSON.stringify(jsonNewData),'utf8')
-        .then(()=> {
-          log("File successsfully written!")
-          assignedId = newData["id"]
-          return assignedId
-        })
-        .catch((error)=> {throw error})
-        
-      })
-      .catch( (error) => {
-        throw error
-      });
-  return assignedId
+  async save(data: Object): Promise<Number> {
+    try {
+      const jsonData: Array<Object> = JSON.parse(
+        await fs.promises.readFile(this.fileDir, "utf8")
+      );
+      const newData: Object = data;
+      if (jsonData.length) {
+        const lastItem = jsonData[jsonData.length - 1];
+        const lastId = lastItem["id"];
+        newData["id"] = lastId + 1;
+      } else {
+        newData["id"] = 1;
+      }
+      const jsonNewData: Array<Object> = jsonData;
+      jsonNewData.push(newData);
+      await fs.promises.writeFile(this.fileDir, JSON.stringify(jsonNewData));
+      log(success(`Product saved!`))
+      return await newData["id"]
+    } catch (error) {
+      log(warn(error.message));
+    }
   }
 
   /* ---------------- Get by Id --------------- */
-  getById(id: number): Object {
-    let filteredData;
-    fs.readFile(this.fileDir, "utf8", (error, content) => {
-      if (error) {
-        console.log("Object NOT retrieved!");
-      } else {
-        const jsonData = JSON.parse(content);
-        filteredData = jsonData.filter((element) => element["id"] === id);
-        console.log("Object successfully retrieved!");
-      }
-    });
-    return filteredData;
+  async getById(id: number): Promise<Object> {
+    try {
+      const jsonData = JSON.parse(await fs.promises.readFile(this.fileDir,'utf8'));
+      const filteredData = jsonData.filter(element => element['id']===id );
+      log(success('Object Retrieved!'))
+      return filteredData[0]
+    } catch (error) {
+      log(warn(error.message));
+    }
   }
 
   /* ----------------- Get all ---------------- */
-  getAll(): any {
-    let allData;
-    fs.readFile(this.fileDir, "utf8", (error, content) => {
-      if (error) {
-        console.log("Array NOT retrieved!");
-      } else {
-        allData = JSON.parse(content);
-        console.log("Array successfully retrieved!");
-        return allData;
-      }
-    });
+  async getAll(): Promise<Object[]> {
+    try {
+      const allData = JSON.parse(await fs.promises.readFile(this.fileDir,'utf8'))
+      log(success('Array Retreived!'))
+      return allData;
+    } catch (error) {
+      log(warn(error.message));
+    }
   }
 
   /* -------------- Delete by ID -------------- */
-  deleteById(id: number): void {
-    let newData;
-    fs.readFile(this.fileDir, "utf8", (error, content) => {
-      if (error) {
-        console.log("File NOT read!");
-      } else {
-        const jsonData = JSON.parse(content);
-        newData = jsonData.filter((element) => element["id"] != id);
-        fs.writeFile(this.fileDir, JSON.stringify(newData), (error) => {
-          if (error) {
-            console.log("File NOT overwritten with removals!");
-          } else {
-            console.log("File successfully overwritten with removals!");
-          }
-        });
-      }
-    });
+  async deleteById(id: number): Promise<void> {
+    try {
+      const jsonData: Array<Object> = JSON.parse(
+        await fs.promises.readFile(this.fileDir, "utf8")
+      );
+      const jsonNewData: Array<Object> = jsonData.filter((element) => element["id"] != id);
+      await fs.promises.writeFile(this.fileDir, JSON.stringify(jsonNewData));
+      log(success(`Product deleted!`))
+    } catch (error) {
+      log(warn(error.message));
+    }
   }
 
+
   /* --------------- Delete all --------------- */
-  deleteAll(): void {
-    fs.unlink(this.fileDir, (error) => {
-      if (error) {
-        console.log("File NOT deleted!");
-      }
-    });
+  async deleteAll(): Promise<void> {
+    try {
+      await fs.promises.unlink(this.fileDir)
+      log(success('All deleted!'))
+    } catch (error) {
+      log(warn(error.message));
+    }
   }
 }
 
@@ -151,14 +136,3 @@ const product3: Object = new Product(
 );
 
 
-productsDir.save(product1);
-console.log(productsDir.getAll());
-productsDir.save(product2);
-console.log(productsDir.getAll());
-productsDir.save(product3);
-console.log(productsDir.getById(2));
-console.log(productsDir.getAll());
-console.log(productsDir.deleteById(3));
-console.log(productsDir.getAll());
-console.log(productsDir.deleteAll());
-console.log(productsDir.getAll())
