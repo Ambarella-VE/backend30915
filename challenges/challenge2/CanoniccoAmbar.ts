@@ -135,16 +135,4 @@ const product3: Object = new Product(
   "https://images.pexels.com/photos/3389419/pexels-photo-3389419.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
 );
 
-productsDir.save(product1)
-.then(async ()=> log(await productsDir.getAll()))
-.then(async ()=> await productsDir.save(product2))
-.then(async ()=> await log(productsDir.getAll()))
-.then(async ()=> await productsDir.save(product3))
-.then(async ()=> await log(productsDir.getAll()))
-.then(async ()=> await log(productsDir.getById(2)))
-.then(async ()=> await log(productsDir.getAll()))
-.then(async ()=> await log(productsDir.deleteById(3)))
-.then(async ()=> await log(productsDir.getAll()))
-.then(async ()=> await log(productsDir.deleteAll()))
-.then(async ()=> await log(productsDir.getAll()))
 

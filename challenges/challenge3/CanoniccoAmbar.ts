@@ -4,9 +4,8 @@
 
 import emoji from 'node-emoji';
 import clc from 'cli-color'
-import * as ch2 from '../challenge2/CanoniccoAmbar'
+import { log, warn, Container, success }  from '../challenge2/CanoniccoAmbar'
 
-const log = console.log
 const listen = clc.blueBright.italic
 
 /* -------------------------------------------- */
@@ -65,7 +64,7 @@ const server = app.listen(PORT, () => {
 
 server.on('error', error => {
   const logRes = `${emoji.get('exclamation')} Server error ${error} ${emoji.get('exclamation')}`
-  log(ch2.warn(logRes))
+  log(warn(logRes))
 });
 
 /* -------------------------------------------- */
@@ -76,19 +75,17 @@ app.get('/', (req,res) => {
   res.send ({message: 'Hello world from home'})
 })
 
-const productsFile: ch2.Container = new ch2.Container('./products.json')
+const productsFile: Container = new Container('./products.txt')
 
-app.get('products', async (req, res) => {
+app.get('/products', async (req, res) => {
     const response: Array<Object> = await productsFile.getAll();
-    log(`req: ${req}`)
-    log(`res: ${res}`)
     res.send(response);
+    log(success(`Response received`))
   })
 
-app.get('random-product', async (req, res)  => {
-  const allProducts: Array<Object>  = await productsFile.getAll();
-  const response = await productsFile.getById(getRandomInt(0,allProducts.length));
-  log(`req: ${req}`)
-  log(`res: ${res}`)
-  res.send(await response)
-})
+app.get('/random-product', async (req, res)  => {
+  const allProducts: Array<Object>  = await productsFile.getAll()
+  const response = allProducts[getRandomInt(0,allProducts.length)]
+  res.send(response)
+  log(success(`Response received`))
+});
